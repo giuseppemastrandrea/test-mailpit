@@ -1,0 +1,49 @@
+services:
+  # Container PHP con Apache
+  app:
+    build: .
+    container_name: php_app
+    ports:
+      - "8090:80"
+    volumes:
+      - .:/var/www/html
+      - ./php.ini:/usr/local/etc/php/php.ini
+    env_file:
+      - .env
+    networks:
+      - dev-network
+
+  # Container Mailpit (il nostro server mail finto)
+  mailpit:
+    image: axllent/mailpit:latest
+    container_name: mailpit
+    ports:
+      - "8025:8025" # Interfaccia Web
+      - "1025:1025" # SMTP (interno)
+    networks:
+      - dev-network
+
+  # Container MySQL
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_db
+    env_file:
+      - .env
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${DB_NAME}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    networks:
+      - dev-network
+
+networks:
+  dev-network:
+    driver: bridge
+
+volumes:
+  mysql_data:
